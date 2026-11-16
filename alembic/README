@@ -1,0 +1,14 @@
+Каталог Alembic
+===============
+
+* env.py — настройка окружения: строка подключения берётся из DATABASE_URL,
+  target_metadata = Base.metadata (модели импортируются из app.models).
+* versions/ — файлы ревизий; начальная миграция: 0001_create_initial_schema.py.
+* script.py.mako — шаблон для новых ревизий.
+
+Основные команды (из корня проекта):
+
+    alembic upgrade head      # применить все миграции
+    alembic downgrade -1      # откатить одну ревизию
+    alembic downgrade base    # откатить всё
+    alembic revision --autogenerate -m "описание"   # новая ревизия по моделям

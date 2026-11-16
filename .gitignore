@@ -1,0 +1,19 @@
+# секреты и локальные настройки
+.env
+.env.local
+
+# виртуальное окружение и кэши Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+
+# данные PostgreSQL, если запускается локально без Docker
+*.sqlite3
