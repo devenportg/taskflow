@@ -22,7 +22,9 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("email", sa.String(length=255), nullable=False),
         sa.Column("display_name", sa.String(length=255), nullable=False),
-        sa.Column("role", sa.String(length=32), server_default="operator", nullable=False),
+        sa.Column(
+            "role", sa.String(length=32), server_default="operator", nullable=False
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -52,7 +54,9 @@ def upgrade() -> None:
         "labels",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=64), nullable=False),
-        sa.Column("color", sa.String(length=7), server_default="#6b7280", nullable=False),
+        sa.Column(
+            "color", sa.String(length=7), server_default="#6b7280", nullable=False
+        ),
         sa.CheckConstraint("color ~ '^#[0-9A-Fa-f]{6}$'", name="ck_labels_color"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name", name="uq_labels_name"),
@@ -66,8 +70,12 @@ def upgrade() -> None:
         sa.Column("label_id", sa.Integer(), nullable=True),
         sa.Column("title", sa.String(length=200), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("status", sa.String(length=32), server_default="open", nullable=False),
-        sa.Column("priority", sa.String(length=16), server_default="medium", nullable=False),
+        sa.Column(
+            "status", sa.String(length=32), server_default="open", nullable=False
+        ),
+        sa.Column(
+            "priority", sa.String(length=16), server_default="medium", nullable=False
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -80,8 +88,12 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.CheckConstraint("status IN ('open', 'in_progress', 'done')", name="ck_tasks_status"),
-        sa.CheckConstraint("priority IN ('low', 'medium', 'high')", name="ck_tasks_priority"),
+        sa.CheckConstraint(
+            "status IN ('open', 'in_progress', 'done')", name="ck_tasks_status"
+        ),
+        sa.CheckConstraint(
+            "priority IN ('low', 'medium', 'high')", name="ck_tasks_priority"
+        ),
         sa.ForeignKeyConstraint(
             ["project_id"],
             ["projects.id"],

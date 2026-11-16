@@ -19,7 +19,9 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
     return get_or_404(db, models.Project, project_id, "Project")
 
 
-@router.post("", response_model=schemas.ProjectRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=schemas.ProjectRead, status_code=status.HTTP_201_CREATED
+)
 def create_project(payload: schemas.ProjectCreate, db: Session = Depends(get_db)):
     project = models.Project(**payload.model_dump())
     db.add(project)
@@ -29,7 +31,9 @@ def create_project(payload: schemas.ProjectCreate, db: Session = Depends(get_db)
 
 
 @router.patch("/{project_id}", response_model=schemas.ProjectRead)
-def update_project(project_id: int, payload: schemas.ProjectUpdate, db: Session = Depends(get_db)):
+def update_project(
+    project_id: int, payload: schemas.ProjectUpdate, db: Session = Depends(get_db)
+):
     project = get_or_404(db, models.Project, project_id, "Project")
     apply_updates(project, payload)
     commit_or_409(db)

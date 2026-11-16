@@ -28,7 +28,9 @@ def get_comment(comment_id: int, db: Session = Depends(get_db)):
     return get_or_404(db, models.Comment, comment_id, "Comment")
 
 
-@router.post("", response_model=schemas.CommentRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=schemas.CommentRead, status_code=status.HTTP_201_CREATED
+)
 def create_comment(payload: schemas.CommentCreate, db: Session = Depends(get_db)):
     comment = models.Comment(**payload.model_dump())
     db.add(comment)
@@ -38,7 +40,9 @@ def create_comment(payload: schemas.CommentCreate, db: Session = Depends(get_db)
 
 
 @router.patch("/{comment_id}", response_model=schemas.CommentRead)
-def update_comment(comment_id: int, payload: schemas.CommentUpdate, db: Session = Depends(get_db)):
+def update_comment(
+    comment_id: int, payload: schemas.CommentUpdate, db: Session = Depends(get_db)
+):
     comment = get_or_404(db, models.Comment, comment_id, "Comment")
     apply_updates(comment, payload)
     commit_or_409(db)

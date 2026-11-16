@@ -35,7 +35,9 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @router.patch("/{user_id}", response_model=schemas.UserRead)
-def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)):
+def update_user(
+    user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)
+):
     user = get_or_404(db, models.User, user_id, "User")
     apply_updates(user, payload)
     commit_or_409(db)

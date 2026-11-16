@@ -70,7 +70,9 @@ def test_commit_or_409_maps_named_constraint_to_conflict():
 
 @pytest.mark.unit
 def test_commit_or_409_uses_generic_message_for_unknown_constraint():
-    original = SimpleNamespace(diag=SimpleNamespace(constraint_name="unknown_constraint"))
+    original = SimpleNamespace(
+        diag=SimpleNamespace(constraint_name="unknown_constraint")
+    )
     integrity_error = IntegrityError("INSERT", {}, original)
     session = FakeSession(commit_error=integrity_error)
 

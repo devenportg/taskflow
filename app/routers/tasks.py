@@ -47,7 +47,9 @@ def create_task(payload: schemas.TaskCreate, db: Session = Depends(get_db)):
 
 
 @router.patch("/{task_id}", response_model=schemas.TaskRead)
-def update_task(task_id: int, payload: schemas.TaskUpdate, db: Session = Depends(get_db)):
+def update_task(
+    task_id: int, payload: schemas.TaskUpdate, db: Session = Depends(get_db)
+):
     task = get_or_404(db, models.Task, task_id, "Task")
     apply_updates(task, payload)
     commit_or_409(db)

@@ -14,20 +14,25 @@
 ```text
 .
 ├── app/
-│   ├── main.py              # создание FastAPI, GET /health, подключение роутеров
-│   ├── config.py            # настройки из окружения (DATABASE_URL)
+│   ├── main.py              # FastAPI, GET /health, request logging, подключение роутеров
+│   ├── config.py            # настройки из окружения (DATABASE_URL, LOG_LEVEL)
+│   ├── logging_config.py    # настройка стандартного Python logging
 │   ├── database.py          # Engine, SessionLocal, Base, зависимость get_db
 │   ├── models.py            # пять ORM-моделей: users, projects, labels, tasks, comments
 │   ├── schemas.py           # Pydantic-схемы Create / Update / Read
 │   ├── crud.py              # общие операции: get_or_404, commit_or_409, apply_updates
 │   └── routers/             # по файлу на ресурс: users, projects, labels, tasks, comments
+├── .github/workflows/ci.yml # три CI job: Black, Ruff и pytest с PostgreSQL
 ├── alembic/
 │   ├── env.py               # DATABASE_URL из окружения, target_metadata = Base.metadata
 │   ├── script.py.mako       # шаблон для новых ревизий
 │   └── versions/
 │       └── 0001_create_initial_schema.py
 ├── scripts/smoke_test.py    # проверка API по сценарию из задания (49 проверок)
+├── scripts/logging_demo.py  # демонстрация уровней логирования
+├── tests/                   # unit, integration и e2e-тесты
 ├── alembic.ini
+├── pyproject.toml           # настройки Black и Ruff
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .dockerignore
@@ -173,7 +178,7 @@ PostgreSQL, укажите другой, например `"5433:5432"`, и по
 python -m venv .venv                     # Windows, если 3.12 не основная версия: py -3.12 -m venv .venv
 source .venv/bin/activate        # Windows PowerShell: .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 3. Файл `.env` в корне проекта (в Git он не попадает):
@@ -318,11 +323,53 @@ alembic upgrade head
 
 ---
 
+## CI: стиль, статический анализ и тесты
+
+GitHub Actions запускает workflow `.github/workflows/ci.yml` при каждом `push` и `pull_request`.
+В нём ровно три независимые job:
+
+1. `style` — проверка форматирования командой `python -m black --check app tests scripts alembic`;
+2. `analysis` — статический анализ командой `python -m ruff check app tests scripts alembic`;
+3. `tests` — `pytest` с сервисом PostgreSQL 16. Интеграционные тесты создают схему тестовой базы через Alembic.
+
+В GitHub Actions все три job должны пройти успешно. В `tests` перед запуском pytest применяются миграции и поднимается Uvicorn, поэтому CI выполняет unit-, integration- и E2E-тесты, используя отдельную базу `taskflow_test`.
+
+Локально проверки запускаются из корня проекта:
+
+```bash
+python -m black --check app tests scripts alembic
+python -m ruff check app tests scripts alembic
+python -m pytest -q
+```
+
+## Логирование
+
+Приложение использует стандартный Python-модуль `logging`. Уровень настраивается через `LOG_LEVEL`:
+
+```dotenv
+LOG_LEVEL=INFO
+```
+
+Допустимые значения: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. Например, для подробных сообщений установите `LOG_LEVEL=DEBUG`; в Docker-режиме вывод смотрите командой `docker compose logs -f api`.
+
+Запросы логируются без тела запроса: успешные ответы как `INFO`, клиентские ошибки как `WARNING`, серверные ошибки как `ERROR`; при ошибке проверки БД в `/health` пишется `CRITICAL`. Отладочная запись о начале запроса видна при уровне `DEBUG`.
+
+Показать все пять уровней отдельно:
+
+```bash
+# Linux/macOS
+LOG_LEVEL=DEBUG python scripts/logging_demo.py
+
+# Windows PowerShell
+$env:LOG_LEVEL = "DEBUG"
+python scripts/logging_demo.py
+```
+
 ## Автоматическая проверка API
 
 Скрипт проходит весь сценарий задания и печатает отчёт. Нужны база, доступная с хоста (`localhost:5432`),
 и применённые миграции: `alembic upgrade head` → `python scripts/smoke_test.py`.
-Работает через `TestClient` из FastAPI, поэтому требует пакет `httpx2` — он уже есть в `requirements.txt`.
+Работает через `TestClient` из FastAPI, поэтому для разработки установлен `httpx2` из `requirements-dev.txt`.
 
 ```bash
 # Linux / macOS
@@ -346,6 +393,7 @@ python scripts/smoke_test.py
 | `POSTGRES_PASSWORD` | пароль БД | `change-me` |
 | `POSTGRES_DB` | имя базы | `taskflow` |
 | `DATABASE_URL` | строка подключения для запусков с хоста (Alembic, Uvicorn, смоук-тест) | `postgresql+psycopg2://taskflow:change-me@localhost:5432/taskflow` |
+| `LOG_LEVEL` | порог логирования приложения | `INFO` (или `DEBUG`, `WARNING`, `ERROR`, `CRITICAL`) |
 
 Внутри Compose `DATABASE_URL` собирается из `POSTGRES_*` с хостом `db`, поэтому менять её для контейнеров не нужно.
 

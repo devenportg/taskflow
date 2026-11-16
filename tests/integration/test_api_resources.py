@@ -66,9 +66,14 @@ def test_user_crud_filter_duplicate_and_not_found(client):
     assert user["created_at"]
 
     assert client.get(f"/v1/users/{user['id']}").json()["email"] == payload["email"]
-    assert any(item["id"] == user["id"] for item in client.get("/v1/users?role=operator").json())
+    assert any(
+        item["id"] == user["id"]
+        for item in client.get("/v1/users?role=operator").json()
+    )
 
-    updated = client.patch(f"/v1/users/{user['id']}", json={"display_name": "Updated name"})
+    updated = client.patch(
+        f"/v1/users/{user['id']}", json={"display_name": "Updated name"}
+    )
     assert updated.status_code == 200
     assert updated.json()["display_name"] == "Updated name"
     assert updated.json()["email"] == payload["email"]
@@ -91,9 +96,13 @@ def test_project_crud(client):
     assert created.status_code == 201
     project = created.json()
 
-    assert client.get(f"/v1/projects/{project['id']}").json()["name"] == f"Project {tag}"
+    assert (
+        client.get(f"/v1/projects/{project['id']}").json()["name"] == f"Project {tag}"
+    )
 
-    updated = client.patch(f"/v1/projects/{project['id']}", json={"description": "Updated"})
+    updated = client.patch(
+        f"/v1/projects/{project['id']}", json={"description": "Updated"}
+    )
     assert updated.status_code == 200
     assert updated.json()["description"] == "Updated"
     assert updated.json()["name"] == f"Project {tag}"
@@ -161,7 +170,9 @@ def test_comment_crud_filter_and_author_restrict(client):
     assert filtered.status_code == 200
     assert [item["id"] for item in filtered.json()] == [comment["id"]]
 
-    updated = client.patch(f"/v1/comments/{comment['id']}", json={"body": "Edited comment"})
+    updated = client.patch(
+        f"/v1/comments/{comment['id']}", json={"body": "Edited comment"}
+    )
     assert updated.status_code == 200
     assert updated.json()["body"] == "Edited comment"
 
@@ -193,7 +204,11 @@ def test_deleting_project_cascades_to_tasks_and_comments(client):
     task = create_task(client, project["id"])
     comment_response = client.post(
         "/v1/comments",
-        json={"task_id": task["id"], "author_id": user["id"], "body": "Will be cascaded"},
+        json={
+            "task_id": task["id"],
+            "author_id": user["id"],
+            "body": "Will be cascaded",
+        },
     )
     assert comment_response.status_code == 201
     comment_id = comment_response.json()["id"]

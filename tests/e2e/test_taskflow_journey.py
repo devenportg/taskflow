@@ -31,8 +31,13 @@ def live_api() -> Callable:
         pytest.fail("Имя E2E-БД должно содержать 'test' — например taskflow_test.")
 
     parsed_http = urlsplit(base_url)
-    if parsed_http.scheme != "http" or parsed_http.hostname not in {"localhost", "127.0.0.1"}:
-        pytest.fail("Для безопасности E2E-тесты разрешены только к локальному HTTP-серверу.")
+    if parsed_http.scheme != "http" or parsed_http.hostname not in {
+        "localhost",
+        "127.0.0.1",
+    }:
+        pytest.fail(
+            "Для безопасности E2E-тесты разрешены только к локальному HTTP-серверу."
+        )
 
     base_url = base_url.rstrip("/")
 
@@ -108,7 +113,11 @@ def test_team_member_completes_taskflow_lifecycle(live_api):
         status, comment = live_api(
             "POST",
             "/v1/comments",
-            {"task_id": task["id"], "author_id": user["id"], "body": "Work has started"},
+            {
+                "task_id": task["id"],
+                "author_id": user["id"],
+                "body": "Work has started",
+            },
         )
         assert status == 201, comment
         created["comment"] = comment
